@@ -5,6 +5,7 @@ import { TOPICS, TOPIC_MAP } from '../../data/topics';
 import type { TopicId } from '../../data/types';
 import { useConfig } from '../../config/useConfig';
 import { pickVisibleCountRange } from '../../config/site';
+import { MAX_SURVEY_QUESTIONS, MIN_SURVEY_QUESTIONS } from '../../data/quizBuilder';
 import { cn, shuffle } from '../../lib/utils';
 import { DynamicIcon } from '../ui/DynamicIcon';
 import { Reveal } from '../ui/Reveal';
@@ -155,7 +156,7 @@ export function SurveysSection({ completedIds, onStart }: SurveysProps) {
 
                   <div className="relative mt-3 flex items-center gap-3 text-[11.5px] text-muted">
                     <span className="inline-flex items-center gap-1">
-                      <ClipboardCheckIcon className="h-3 w-3" /> {survey.questions.length} أسئلة
+                      <ClipboardCheckIcon className="h-3 w-3" /> {MIN_SURVEY_QUESTIONS}–{MAX_SURVEY_QUESTIONS} أسئلة
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <Clock3 className="h-3 w-3" /> {survey.minutes} دقائق

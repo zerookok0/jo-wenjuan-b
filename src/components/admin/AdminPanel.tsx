@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Copy, Download, RotateCcw, Save, Settings2, X } from 'lucide-react';
+import { Check, Copy, Download, ExternalLink, RotateCcw, Save, Settings2, X } from 'lucide-react';
 import { ALL_SURVEYS } from '../../data/surveys';
 import { PRIZES } from '../../data/prizes';
 import { defaultConfig, loadConfig, saveConfig, resetConfig, type EditableConfig } from '../../config/store';
@@ -136,6 +136,53 @@ export function AdminPanel({ open, onClose }: { open: boolean; onClose: () => vo
             <TextField label="مدة التوصيل" value={draft.deliveryDays} onChange={(v) => update('deliveryDays', v)} />
             <TextField label="بريد التواصل" value={draft.supportEmail} onChange={(v) => update('supportEmail', v)} />
           </div>
+        </section>
+
+        <section className="mt-4 rounded-3xl border border-primary/25 bg-primary/[0.06] p-5">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/15 text-primary">
+              <Download className="h-4 w-4" />
+            </span>
+            <h2 className="text-[15px] font-extrabold text-white">رابط تحميل التطبيق</h2>
+          </div>
+          <p className="mt-2 text-[11.5px] leading-relaxed text-muted">
+            هذا الرابط يفتح عند الضغط على زر «تحميل التطبيق» في صفحة استلام الهدية بعد الاستبيان.
+            ضع رابط ملف APK أو رابط متجر التطبيقات.
+          </p>
+          <div className="mt-4">
+            <label className="mb-1.5 block text-[12px] font-bold text-white/80">الرابط</label>
+            <input
+              dir="ltr"
+              value={draft.appDownloadUrl}
+              onChange={(e) => update('appDownloadUrl', e.target.value)}
+              placeholder="https://example.com/app.apk"
+              className="h-11 w-full rounded-xl border border-line bg-surface/70 px-3.5 text-left text-[12.5px] text-white focus:border-primary/50 focus:outline-none"
+            />
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!draft.appDownloadUrl.trim()}
+              onClick={() => window.open(draft.appDownloadUrl, '_blank', 'noopener,noreferrer')}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[11.5px] font-bold text-white/70 transition hover:border-primary/40 hover:text-white disabled:opacity-40"
+            >
+              <ExternalLink className="h-3 w-3" /> تجربة الرابط
+            </button>
+            <span
+              className={
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ' +
+                (draft.appDownloadUrl.trim()
+                  ? 'bg-success/15 text-success'
+                  : 'bg-danger/15 text-danger')
+              }
+            >
+              {draft.appDownloadUrl.trim() ? 'الرابط مفعّل' : 'لا يوجد رابط'}
+            </span>
+          </div>
+          <p className="mt-2.5 text-[10.5px] leading-relaxed text-white/35">
+            بعد التعديل اضغط «حفظ التغييرات» في أسفل الصفحة ليأخذ الرابط الجديد مفعوله.
+          </p>
         </section>
 
         <section className="mt-4 rounded-3xl border border-line bg-surface/50 p-5">

@@ -13,14 +13,15 @@ import { QuizRunner } from './components/survey/QuizRunner';
 import { RewardScreen } from './components/survey/RewardScreen';
 import { ClaimFlow } from './components/claim/ClaimFlow';
 import { AddressPage } from './components/claim/AddressPage';
-import { isAddressRoute } from './lib/route';
+import { isAddressRoute, isAdminRoute, clearAdminRoute } from './lib/route';
 import { WalletSheet } from './components/wallet/WalletSheet';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { AppProvider, useApp } from './store/AppContext';
 import { SURVEY_MAP, totalSurveys } from './data/surveys';
 import { PRIZES } from './data/prizes';
+import { buildSurveyQuestions } from './data/quizBuilder';
 import { useConfig } from './config/useConfig';
-import type { Answers, PrizeProduct } from './data/types';
+import type { Answers, PrizeProduct, Question } from './data/types';
 import { Reveal } from './components/ui/Reveal';
 
 type View = 'home' | 'quiz' | 'reward' | 'claim' | 'address';
@@ -30,6 +31,8 @@ function Site() {
   const config = useConfig();
   const [view, setView] = useState<View>(() => (isAddressRoute() ? 'address' : 'home'));
   const [activeSurveyId, setActiveSurveyId] = useState<string | null>(null);
+  /* أسئلة الجلسة الحالية: تُولَّد عشوائياً (15–20 سؤالاً) عند كل بدء */
+  const [activeQuestions, setActiveQuestions] = useState<Question[] | null>(null);
   const [claimPrize, setClaimPrize] = useState<PrizeProduct | null>(null);
   const [walletOpen, setWalletOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
@@ -45,16 +48,38 @@ function Site() {
   ];
 
   useEffect(() => {
-    // فتح لوحة التحكم عبر الرابط #admin أو الضغط على Ctrl+Alt+A
+    /* لوحة التحكم تُفتح بـ #admin أو Ctrl+Alt+A.
+       مهم: عند كتابة #admin في شريط العنوان والمتصفح مفتوح مسبقاً
+       لا تُعاد الصفحة، فلا يُطلق هذا الـ effect مرة أخرى.
+       لذلك نستمع أيضاً لحدث hashchange و popstate. */
+    const openIfAdminRoute = () => {
+      if (isAdminRoute()) {
+        setAdminOpen(true);
+        /* نزيل ?admin أو #admin من الرابط بعد الفتح
+           حتى لا تعود اللوحة للظهور عند إعادة التحميل أو التنقل. */
+        clearAdminRoute();
+      }
+    };
+
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         setAdminOpen((v) => !v);
       }
     };
+
     window.addEventListener('keydown', onKey);
-    if (window.location.hash === '#admin') setAdminOpen(true);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('hashchange', openIfAdminRoute);
+    window.addEventListener('popstate', openIfAdminRoute);
+
+    // فحص أولي عند تحميل الصفحة
+    openIfAdminRoute();
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('hashchange', openIfAdminRoute);
+      window.removeEventListener('popstate', openIfAdminRoute);
+    };
   }, []);
 
   // مزامنة التوجيه مع عنوان المتصفح: /dizhi أو #dizhi تفتح صفحة العنوان مباشرة
@@ -77,6 +102,7 @@ function Site() {
   const backHome = useCallback(() => {
     setView('home');
     setActiveSurveyId(null);
+    setActiveQuestions(null);
     setClaimPrize(null);
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 0);
   }, []);
@@ -88,6 +114,10 @@ function Site() {
   }, [scrollTo]);
 
   const startSurvey = useCallback((id: string) => {
+    const survey = SURVEY_MAP[id];
+    if (!survey) return;
+    // توليد 15–20 سؤالاً عشوائياً في كل مرة يبدأ فيها المستخدم الاستبيان
+    setActiveQuestions(buildSurveyQuestions(survey));
     setActiveSurveyId(id);
     setView('quiz');
   }, []);
@@ -234,14 +264,20 @@ function Site() {
       </div>
       <div className="h-20 sm:hidden" aria-hidden="true" />
 
-      {view === 'quiz' && activeSurvey ? (
-        <QuizRunner survey={activeSurvey} onExit={backHome} onComplete={handleComplete} />
+      {view === 'quiz' && activeSurvey && activeQuestions ? (
+        <QuizRunner
+          survey={activeSurvey}
+          questions={activeQuestions}
+          onExit={backHome}
+          onComplete={handleComplete}
+        />
       ) : null}
 
       {view === 'reward' && activeSurvey ? (
         <RewardScreen
           survey={activeSurvey}
           prizes={prizes}
+          answeredCount={activeQuestions?.length}
           onClaim={(prize) => openClaim(prize)}
           onBackHome={backHome}
         />

@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { siteConfig } from '../../config/site';
+import { useConfig } from '../../config/useConfig';
 import type { PrizeProduct } from '../../data/types';
 import { setPendingPrizeId } from '../../lib/claim';
 import { cn } from '../../lib/utils';
@@ -30,6 +31,7 @@ const STEP_LABEL: Record<Step, string> = {
 };
 
 export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
+  const config = useConfig();
   const [step, setStep] = useState<Step>(initialPrize ? 'download' : 'pick');
   const [prize, setPrize] = useState<PrizeProduct | null>(initialPrize ?? null);
   const [downloaded, setDownloaded] = useState(false);
@@ -49,9 +51,14 @@ export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
 
   /* صفحة التحميل هي نهاية المسار على الموقع.
      لا يوجد زر «متابعة» ولا انتقال تلقائي إلى صفحة العنوان:
-     إدخال العنوان يتم داخل التطبيق بعد تحميله. */
+     إدخال العنوان يتم داخل التطبيق بعد تحميله.
+     الرابط قابل للتغيير من لوحة التحكم (appDownloadUrl). */
+  const downloadUrl = (config.appDownloadUrl || siteConfig.appDownloadUrl).trim();
+
   const handleDownload = () => {
     setDownloaded(true);
+    if (!downloadUrl) return;
+    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -185,7 +192,7 @@ export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
                 {' '}
                 إدخال العنوان واستلام الهدية يتم داخل التطبيق فقط.
               </span>{' '}
-              حجمه {siteConfig.appSize} وبدون أي عملية دفع.
+              حجمه {config.appSize || siteConfig.appSize} وبدون أي عملية دفع.
             </p>
 
             <div className="mt-5 rounded-3xl border border-line bg-deep/70 p-5">
@@ -194,7 +201,7 @@ export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
                 {[
                   'اضغط زر «تحميل التطبيق» أدناه وثبّته على هاتفك.',
                   `افتح التطبيق بنفس رقم هاتفك لتظهر لك هدية «${prize.name}».`,
-                  `أدخل عنوان الشحن داخل التطبيق، ويصلك الطلب خلال ${siteConfig.deliveryDays}.`,
+                  `أدخل عنوان الشحن داخل التطبيق، ويصلك الطلب خلال ${config.deliveryDays || siteConfig.deliveryDays}.`,
                 ].map((line, i) => (
                   <li key={line} className="flex items-start gap-3">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[11px] font-extrabold text-primary">
@@ -212,8 +219,12 @@ export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
                   <Smartphone className="h-7 w-7" strokeWidth={1.8} />
                 </span>
                 <div className="flex-1">
-                  <p className="text-[15px] font-extrabold text-white">{siteConfig.appName}</p>
-                  <p className="text-[11.5px] text-muted">الإصدار 2.4 · {siteConfig.appSize}</p>
+                  <p className="text-[15px] font-extrabold text-white">
+                    {config.appName || siteConfig.appName}
+                  </p>
+                  <p className="text-[11.5px] text-muted">
+                    الإصدار 2.4 · {config.appSize || siteConfig.appSize}
+                  </p>
                   <div className="mt-1.5 flex items-center gap-2 text-[10.5px] text-success">
                     <ShieldCheck className="h-3 w-3" /> بدون مشتريات · بدون صلاحيات دفع
                   </div>
@@ -255,6 +266,17 @@ export function ClaimFlow({ prizes, initialPrize, onClose }: ClaimFlowProps) {
                   ? 'أكمل الخطوات داخل التطبيق لإدخال العنوان واستلام الهدية.'
                   : 'بعد التحميل افتح التطبيق وأدخل عنوانك هناك لإتمام الاستلام.'}
               </p>
+              {downloadUrl ? (
+                <a
+                  href={downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setDownloaded(true)}
+                  className="mt-2 block text-center text-[11px] font-bold text-primary/80 underline-offset-4 transition hover:text-primary hover:underline"
+                >
+                  لم يبدأ التحميل؟ اضغط هنا
+                </a>
+              ) : null}
             </div>
 
             <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-secondary/20 bg-secondary/[0.06] p-3.5">

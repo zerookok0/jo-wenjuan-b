@@ -19,6 +19,8 @@ export interface SiteConfig {
   supportEmail: string;
   appName: string;
   appSize: string;
+  /** رابط تحميل التطبيق — يمكن تغييره من لوحة التحكم أو من هنا */
+  appDownloadUrl: string;
   deliveryDays: string;
   prizes: PrizeProduct[];
 }
@@ -80,6 +82,8 @@ export const siteConfig: SiteConfig = {
   supportEmail: 'hello@rayak.jo',
   appName: 'رأيك الأردن',
   appSize: '18 ميجابايت',
+  /** ⬇️ ضع هنا رابط تحميل التطبيق (APK أو متجر التطبيقات) */
+  appDownloadUrl: 'https://rayak.jo/app',
   deliveryDays: '1 – 3 أيام عمل',
 
   prizes: [],

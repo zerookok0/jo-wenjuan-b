@@ -1,28 +1,30 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Check, CornerDownLeft, X } from 'lucide-react';
-import type { Answers, Survey } from '../../data/types';
+import type { Answers, Question, Survey } from '../../data/types';
 import { cn, pct } from '../../lib/utils';
 
 interface QuizRunnerProps {
   survey: Survey;
+  /** أسئلة الجلسة المُولَّدة عشوائياً (15–20 سؤالاً) */
+  questions: Question[];
   onExit: () => void;
   onComplete: (answers: Answers) => void;
 }
 
 const LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
 
-export function QuizRunner({ survey, onExit, onComplete }: QuizRunnerProps) {
-  const questions = useMemo(() => survey.questions, [survey]);
+export function QuizRunner({ survey, questions, onExit, onComplete }: QuizRunnerProps) {
+  const list = useMemo(() => (questions.length ? questions : survey.questions), [questions, survey.questions]);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [shake, setShake] = useState(false);
 
-  const question = questions[index];
+  const question = list[index];
   const key = `q${index}`;
   const current = answers[key];
-  const isLast = index === questions.length - 1;
+  const isLast = index === list.length - 1;
 
-  const answeredCount = questions.filter((q, i) => {
+  const answeredCount = list.filter((q, i) => {
     const v = answers[`q${i}`];
     if (q.type === 'text') return typeof v === 'string' && v.trim().length > 0;
     return Array.isArray(v) ? v.length > 0 : v !== undefined && v !== '';
@@ -42,8 +44,8 @@ export function QuizRunner({ survey, onExit, onComplete }: QuizRunnerProps) {
       return;
     }
     if (isLast) onComplete(answers);
-    else setIndex((i) => Math.min(i + 1, questions.length - 1));
-  }, [isValid, isLast, onComplete, answers, questions.length]);
+    else setIndex((i) => Math.min(i + 1, list.length - 1));
+  }, [isValid, isLast, onComplete, answers, list.length]);
 
   const goBack = useCallback(() => {
     if (index === 0) onExit();
@@ -53,7 +55,7 @@ export function QuizRunner({ survey, onExit, onComplete }: QuizRunnerProps) {
   const selectSingle = (option: string) => {
     setAnswers((prev) => ({ ...prev, [key]: option }));
     if (!isLast) {
-      window.setTimeout(() => setIndex((i) => Math.min(i + 1, questions.length - 1)), 250);
+      window.setTimeout(() => setIndex((i) => Math.min(i + 1, list.length - 1)), 250);
     }
   };
 
@@ -107,7 +109,7 @@ export function QuizRunner({ survey, onExit, onComplete }: QuizRunnerProps) {
           <div className="min-w-0 flex-1 text-center">
             <p className="truncate text-[12.5px] font-bold text-white/85">{survey.product}</p>
             <p className="text-[10.5px] text-muted">
-              السؤال {index + 1} من {questions.length} · أجبت عن {answeredCount}
+              السؤال {index + 1} من {list.length} · أجبت عن {answeredCount}
             </p>
           </div>
 
@@ -118,7 +120,7 @@ export function QuizRunner({ survey, onExit, onComplete }: QuizRunnerProps) {
         <div className="h-[3px] w-full bg-white/[0.06]">
           <div
             className="h-full rounded-l-full bg-brand transition-all duration-500 ease-out"
-            style={{ width: `${pct(index + 1, questions.length)}%` }}
+            style={{ width: `${pct(index + 1, list.length)}%` }}
           />
         </div>
       </div>

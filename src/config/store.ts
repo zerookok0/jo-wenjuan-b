@@ -12,6 +12,8 @@ export interface EditableConfig {
   promiseA: string;
   appName: string;
   appSize: string;
+  /** رابط تحميل التطبيق القابل للتعديل من لوحة التحكم */
+  appDownloadUrl: string;
   deliveryDays: string;
   supportEmail: string;
   points: string[];
@@ -32,6 +34,7 @@ export const defaultConfig: EditableConfig = {
   promiseA: siteConfig.dataPromise.a,
   appName: siteConfig.appName,
   appSize: siteConfig.appSize,
+  appDownloadUrl: siteConfig.appDownloadUrl,
   deliveryDays: siteConfig.deliveryDays,
   supportEmail: siteConfig.supportEmail,
   points: siteConfig.points,

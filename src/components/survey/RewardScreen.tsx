@@ -6,6 +6,8 @@ import { DynamicIcon } from '../ui/DynamicIcon';
 interface RewardProps {
   survey: Survey;
   prizes: PrizeProduct[];
+  /** عدد الأسئلة التي أُجيب عنها فعلياً في هذه الجلسة */
+  answeredCount?: number;
   onClaim: (prize: PrizeProduct) => void;
   onBackHome: () => void;
 }
@@ -19,7 +21,7 @@ const CONFETTI = Array.from({ length: 24 }).map((_, i) => ({
   size: 4 + (i % 4) * 2,
 }));
 
-export function RewardScreen({ survey, prizes, onClaim, onBackHome }: RewardProps) {
+export function RewardScreen({ survey, prizes, answeredCount, onClaim, onBackHome }: RewardProps) {
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
@@ -60,7 +62,8 @@ export function RewardScreen({ survey, prizes, onClaim, onBackHome }: RewardProp
             <PartyPopper className="h-9 w-9 text-[#141218]" strokeWidth={1.9} />
           </span>
           <span className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-[11.5px] font-bold text-success">
-            <CheckCircle2 className="h-3.5 w-3.5" /> تم إكمال الاستبيان · {survey.questions.length} سؤالاً
+            <CheckCircle2 className="h-3.5 w-3.5" /> تم إكمال الاستبيان ·{' '}
+            {answeredCount ?? survey.questions.length} سؤالاً
           </span>
           <h1 className="mt-4 font-display text-[28px] font-extrabold leading-snug text-white sm:text-[34px]">
             شكراً لك،
